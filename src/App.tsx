@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import TodoItem from "./TodoItem";
+import { Construction } from "lucide-react";
 
 type Priority = "Urgente" | "Moyenne" | "Basse"
 
@@ -46,7 +48,42 @@ function App() {
   }else{
     filteredTodos = todos.filter((todo) => todo.priority === filter)
   }
+
+  const urgentCount = todos.filter((t) => t.priority === "Urgente").length
+  const mediumCount = todos.filter((t) => t.priority === "Moyenne").length
+  const lowCount = todos.filter((t) => t.priority === "Basse").length
+  const totalCount = todos.length
+
+  function deleteTodo(id: number){
+    const newTodos = todos.filter((todo) => todo.id !== id)
+    setTodos(newTodos)
+  }
+
+  const [selectedTodos, setSelectedTodos] = useState<Set<number>>(new Set())
+
+  function toggleSelectTodo(id: number){
+    const newselected = new Set(selectedTodos)
+    if(newselected.has(id)){
+      newselected.delete(id)
+    }else{
+      newselected.add(id)
+    }
+    setSelectedTodos(newselected)
+  }
   
+
+  function finishSelected(){
+    const newTodos = todos.filter((todo) => {
+      if(selectedTodos.has(todo.id)){
+        return false
+      }else{
+        return true
+      }
+    })
+
+    setTodos(newTodos)
+    setSelectedTodos(new Set())
+  }
 
   return (
     
@@ -76,18 +113,63 @@ function App() {
 
         </div>
         <div className="space-y-2 flex-1 h-fit">
-          <div className="flex flex-wrap gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-wrap gap-4">
             <button
              className={`btn btn-soft ${filter === "Tous" ? "btn btn-primary" : ""}`}
              onClick={() => setFilter("Tous") }
             >
-              Tous
+              Tous({totalCount })
+            </button>
+            <button
+             className={`btn btn-soft ${filter === "Urgente" ? "btn btn-primary" : ""}`}
+             onClick={() => setFilter("Urgente") }
+            >
+              Urgente({urgentCount })
+            </button>
+            <button
+             className={`btn btn-soft ${filter === "Moyenne" ? "btn btn-primary" : ""}`}
+             onClick={() => setFilter("Moyenne") }
+            >
+              Moyenne({mediumCount })
+            </button>
+            <button
+             className={`btn btn-soft ${filter === "Basse" ? "btn btn-primary" : ""}`}
+             onClick={() => setFilter("Basse") }
+            >
+              Basse({lowCount })
+            </button>
+
+            
+          </div>
+          <button
+          onClick={finishSelected}
+              className="btn btn-primary"
+              disabled={selectedTodos.size == 0}
+            >
+              Finir la selection({selectedTodos.size})
             </button>
           </div>
           {filteredTodos.length > 0 ? (
-            <div>test</div>
+            <ul className="divide-y divide-primary/20">
+              {filteredTodos.map((todo) => (
+                <li key={todo.id}>
+                  <TodoItem 
+                    todo={todo}
+                    isSelected={selectedTodos.has(todo.id)}
+                    onDelete={() => deleteTodo(todo.id)}
+                    onToggleSelect={toggleSelectTodo}
+                    />
+                </li>
+              ))}
+            </ul>
           ) : (
-            <div>test2</div>
+            <div className="flex justify-center items-center flex-col p-5">
+              <div>
+                <Construction strokeWidth={1} className="w-40 h-40 text-primary" />
+              </div>
+              <p className="text-sm">Aucune tâche pour ce filtre</p>
+            </div>
           )}
         </div>
 
